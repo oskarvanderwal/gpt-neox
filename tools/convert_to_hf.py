@@ -275,6 +275,11 @@ if __name__ == "__main__":
         help="Path to config file for the input NeoX checkpoint.",
     )
     parser.add_argument(
+        "--config_dir",
+        type=str,
+        help="Path to dir containing the config files for the input NeoX checkpoint.",
+    )
+    parser.add_argument(
         "--output_dir",
         type=str,
         help="Output dir, where to save the HF Model, tokenizer, and configs",
@@ -286,8 +291,15 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    with open(args.config_file) as f:
-        loaded_config = yaml.full_load(f)
+    if args.config_dir:
+        loaded_config = {}
+        for filename in os.scandir(args.config_dir):
+            if filename.is_file() and filename.path.endswith(".yml"):
+                with open(filename.path) as f:
+                    loaded_config.update(yaml.full_load(f))
+    else:
+        with open(args.config_file) as f:
+            loaded_config = yaml.full_load(f)
 
     hf_model = convert(args.input_dir, loaded_config, args.output_dir)
 
